@@ -1,18 +1,21 @@
-import serial, serial.tools.list_ports, threading, json
+import serial
+import serial.tools.list_ports
+import threading
+import json
+import re
+
 from datetime import datetime
+
+from PySide2 import QtGui, QtCore
+from PySide2.QtCore import QSize
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QMainWindow
 from serial.serialutil import SerialException
 
-from PySide2 import QtCore, QtGui
-from PySide2.QtCore import QSize
-from PySide2.QtWidgets import QMainWindow
-
-from PySide2.QtGui import QIcon
-from ui_design.pyforms.MainWindowForm import Ui_MainWindow
-import sys
 import config_gui
 from SystemCommands import CommandsControl
-
-#<div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+from ui_design.pyforms.MainWindowForm import Ui_MainWindow
+from ui_control.InfoFormControl import InfoWindow
 
 
 class MainWindow(QMainWindow):
@@ -28,6 +31,9 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         # загружаем иконки приложения
+        self.icon_info = QIcon()
+        self.icon_info.addFile(u"assets/icons/info-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+
         self.icon_reload = QIcon()
         self.icon_reload.addFile(u"assets/icons/sync-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
 
@@ -47,6 +53,7 @@ class MainWindow(QMainWindow):
         self.icon_pause.addFile(u"assets/icons/pause-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
 
         # настройка кнопок с иконками
+        self.ui.infoBtn.setIcon(self.icon_info)
         self.ui.updatePortListBtn.setIcon(self.icon_reload)
         self.ui.addCommandBtn.setIcon(self.icon_add)
         self.ui.deleteCommandBtn.setIcon(self.icon_delete)
@@ -54,6 +61,11 @@ class MainWindow(QMainWindow):
 
         # Настройки потока
         self.listen_serial = False
+
+        # настройки поля ввода serial rate
+        self.regex_rate = r"^([1-9][0-9]*)$"
+        self.ui.serialRateLe.textChanged.connect(self.check_input_rate)
+        self.ui.serialRateLe.setText(f"{config_gui.SERIAL_RATE}")
 
         # инициализируем функции интерактивных элементов
         self.ui.receiveChangeBtn.clicked.connect(self.receive_change)
@@ -63,8 +75,9 @@ class MainWindow(QMainWindow):
         self.ui.deleteCommandBtn.clicked.connect(self.delete_command)
         self.ui.signalLw.itemSelectionChanged.connect(self.signal_selected)
         self.ui.saveCommandBtn.clicked.connect(self.selected_action_save)
+        self.ui.infoBtn.clicked.connect(self.show_info)
 
-        # настройки пртов
+        # настройки портов
         self.selected_port = False
         self.available_ports = list()
 
@@ -82,30 +95,30 @@ class MainWindow(QMainWindow):
         self.signal_editor_elements_state(False)
         self.load_commands()
 
-        # временные
-        # {"code": "FF906F", "command": "fast_clean"},
-        # self.bound_signals = [
-        #     {
-        #         "code": "FFE01F",
-        #         "command": "vol_up"
-        #     },
-        #     {
-        #         "code": "FFA857",
-        #         "command": "vol_down"
-        #     }
-        # ]
-
-
     def save_commands(self):
+        """
+        Сохранение текущих команд в файл
+        :return:
+        """
         json_str = json.dumps(self.bound_signals)
-        with open('commands.json', 'w+') as f:
+        with open(config_gui.COMMANDS_FILE, 'w+') as f:
             f.write(json_str)
 
     def load_commands(self):
-        with open('commands.json') as json_file:
-            data = json.load(json_file)
-            self.bound_signals = data
-        self.reload_bounded_signals()
+        """
+        Загрузка файла с командами.
+        Если файла не существует, создаем базовую версию файла
+        :return:
+        """
+        try:
+            with open(config_gui.COMMANDS_FILE) as json_file:
+                data = json.load(json_file)
+                self.bound_signals = data
+            self.reload_bounded_signals()
+        except:
+            self.add_to_log("File with commands is not found")
+            self.save_commands()
+            self.add_to_log("Basic file is created")
 
     def reload_bounded_signals(self):
         """
@@ -173,12 +186,14 @@ class MainWindow(QMainWindow):
         if self.listen_serial:
             self.ui.receiveChangeBtn.setIcon(self.icon_pause)
             self.ui.serialPortCmbx.setEnabled(False)
+            self.ui.serialRateLe.setEnabled(False)
             self.ui.updatePortListBtn.setEnabled(False)
             self.ui.statusbar.showMessage(f"Listening commands from port [{self.selected_port}]")
         else:
             self.ui.receiveChangeBtn.setIcon(self.icon_play)
             self.ui.serialPortCmbx.setEnabled(True)
             self.ui.updatePortListBtn.setEnabled(True)
+            self.ui.serialRateLe.setEnabled(True)
             self.ui.statusbar.showMessage(f"Waiting actions from user")
 
     def receive_change(self):
@@ -218,41 +233,50 @@ class MainWindow(QMainWindow):
         Запускаете в отдельном потоке, когда идет работа прослушки.
         :return:
         """
-        if self.selected_port:
-            try:
-                with serial.Serial(
-                        self.selected_port, config_gui.SERIAL_RATE,
-                        timeout=config_gui.SERIAL_TIMEOUT) as ser:
-                    while self.listen_serial:
-                        self.ui.statusbar.showMessage(f"Listening commands from port [{self.selected_port}]")
-                        line = ser.readline().strip().decode("utf-8")
-                        if line != "FFFFFFFF" and line != self.last_signal:
-                            self.last_signal = line
-                        if len(line) > 0:
-                            if line != 'FFFFFFFF':
-                                self.call_command(line)
-                                hold_count = 0
-                                self.add_to_log(line)
-                            else:
-                                if hold_count > config_gui.IR_HOLD_COUNT:
-                                    self.call_command(self.last_signal)
+        if self.check_input_rate():
+            if self.selected_port:
+                try:
+                    with serial.Serial(
+                            self.selected_port, int(self.ui.serialRateLe.text()),
+                            timeout=config_gui.SERIAL_TIMEOUT) as ser:
+                        while self.listen_serial:
+                            self.ui.statusbar.showMessage(f"Listening commands from port [{self.selected_port}]")
+                            line = ser.readline().strip().decode("utf-8")
+                            if line != "FFFFFFFF" and line != self.last_signal:
+                                self.last_signal = line
+                            if len(line) > 0:
+                                if line != 'FFFFFFFF':
+                                    self.call_command(line)
+                                    hold_count = 0
+                                    self.add_to_log(line)
                                 else:
-                                    hold_count += 1
-            except SerialException as serial_error:
-                print(f"Serial not connected: {serial_error}")
-                self.add_to_log(f"Serial port connecting error: {serial_error}")
-            except:
-                print("unexpected error")
-                self.add_to_log("unexpected error")
+                                    if hold_count > config_gui.IR_HOLD_COUNT:
+                                        self.call_command(self.last_signal)
+                                    else:
+                                        hold_count += 1
+                except SerialException as serial_error:
+                    print(f"Serial not connected: {serial_error}")
+                    self.add_to_log(f"Serial port connecting error: {serial_error}")
+                except:
+                    print("unexpected error")
+                    self.add_to_log("unexpected error")
+            else:
+                print("port is not selected")
+                self.add_to_log("port is not selected")
         else:
-            print("port is not selected")
-            self.add_to_log("port is not selected")
+            print("input rate is wrong")
+            self.add_to_log("input rate is wrong")
 
         self.add_to_log("Stopping listen")
         self.listen_serial = False
         self.check_status()
 
     def call_command(self, signal):
+        """
+        Обработчик команд
+        :param signal:
+        :return:
+        """
         for i_signal in self.bound_signals:
             if i_signal["code"] == signal:
                 self.control_commands.run_command(i_signal["command"])
@@ -330,3 +354,30 @@ class MainWindow(QMainWindow):
             self.bound_signals[self.selected_signal]["code"] = self.ui.signalCodeLe.text()
         self.reload_bounded_signals()
         self.selected_signal = -1
+
+    def show_info(self):
+        """
+        Показываем окно с информацией о программе
+        :return:
+        """
+        dlg = InfoWindow(self)
+        dlg.setModal(True)
+        dlg.setWindowFlag(QtCore.Qt.WindowContextHelpButtonHint, False)
+        dlg.exec_()
+
+    def check_input_rate(self):
+        """
+        проверяем вводимые данные при помощи регулярного выражения
+        :return:
+        """
+        print(self.ui.serialRateLe.text())
+        line_check = f"{self.ui.serialRateLe.text()}".replace(" ", "")
+
+        if not re.match(self.regex_rate, line_check) and \
+                len(line_check) > 0:
+            self.ui.serialRateLe.setStyleSheet("border: 2px solid red;")
+            return False
+        else:
+            self.ui.serialRateLe.setStyleSheet("")
+
+        return True

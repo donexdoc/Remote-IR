@@ -29,6 +29,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="updatePortListBtn">
+        <property name="toolTip">
+         <string>Refresh port list</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -61,9 +64,31 @@
        </widget>
       </item>
       <item>
+       <widget class="QLineEdit" name="serialRateLe">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Serial port speed</string>
+        </property>
+        <property name="placeholderText">
+         <string>Serial port rate</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="receiveChangeBtn">
         <property name="toolTip">
-         <string>Start/Stop</string>
+         <string>Start/Stop port listening</string>
         </property>
         <property name="styleSheet">
          <string notr="true"/>
@@ -96,6 +121,20 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="infoBtn">
+        <property name="toolTip">
+         <string>About programm</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../assets/icons/info-solid.svg</normaloff>../../assets/icons/info-solid.svg</iconset>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -113,12 +152,19 @@
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="signalLw"/>
+         <widget class="QListWidget" name="signalLw">
+          <property name="toolTip">
+           <string>All processed signals</string>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QPushButton" name="addCommandBtn">
+            <property name="toolTip">
+             <string>Add command</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -130,6 +176,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="saveCommandBtn">
+            <property name="toolTip">
+             <string>Save selected command</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -141,6 +190,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="deleteCommandBtn">
+            <property name="toolTip">
+             <string>Delete selected command</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -175,7 +227,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="signalCodeLe"/>
+             <widget class="QLineEdit" name="signalCodeLe">
+              <property name="toolTip">
+               <string>Signal code from port</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -192,6 +248,9 @@
              <widget class="QComboBox" name="actionSelectCmbx">
               <property name="enabled">
                <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Available actions</string>
               </property>
              </widget>
             </item>
@@ -217,6 +276,9 @@
           </item>
           <item>
            <widget class="QTextEdit" name="logTe">
+            <property name="toolTip">
+             <string>Actions log</string>
+            </property>
             <property name="readOnly">
              <bool>true</bool>
             </property>

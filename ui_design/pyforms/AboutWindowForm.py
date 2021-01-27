@@ -59,10 +59,10 @@ class Ui_DialogInfo(object):
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.label_6)
 
-        self.label_7 = QLabel(DialogInfo)
-        self.label_7.setObjectName(u"label_7")
+        self.programmVersionLb = QLabel(DialogInfo)
+        self.programmVersionLb.setObjectName(u"programmVersionLb")
 
-        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.label_7)
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.programmVersionLb)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -108,7 +108,7 @@ class Ui_DialogInfo(object):
         self.label_4.setText(QCoreApplication.translate("DialogInfo", u"Project GitHub:", None))
         self.label_5.setText(QCoreApplication.translate("DialogInfo", u"Resources used:", None))
         self.label_6.setText(QCoreApplication.translate("DialogInfo", u"This is a simple program for controlling a computer using Arduino and infrared.", None))
-        self.label_7.setText(QCoreApplication.translate("DialogInfo", u"0.1.9", None))
+        self.programmVersionLb.setText(QCoreApplication.translate("DialogInfo", u"0.0.0", None))
         self.label_8.setText(QCoreApplication.translate("DialogInfo", u"<html><head/><body><p>Link to GitHub - <a href=\"https://github.com/donexdoc\"><span style=\" text-decoration: underline; color:#0000ff;\">donexdoc</span></a>. link to website - <a href=\"https://donex-project.ru/\"><span style=\" text-decoration: underline; color:#0000ff;\">https://donex-project.ru/</span></a>.</p></body></html>", None))
         self.label_9.setText(QCoreApplication.translate("DialogInfo", u"<html><head/><body><p><a href=\"https://github.com/donexdoc/Remote-IR\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/donexdoc/Remote-IR</span></a></p></body></html>", None))
         self.label_10.setText(QCoreApplication.translate("DialogInfo", u"<html><head/><body><p>App icon getted from FlatIcon:</p><p>Icons made by <a href=\"http://www.freepik.com\"><span style=\" text-decoration: underline; color:#0000ff;\">Freepik</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a></p><p>The icons used inside the app were taken from the <a href=\"https://fontawesome.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">https://fontawesome.com</span></a>.</p><p>\n"
