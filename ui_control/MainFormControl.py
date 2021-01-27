@@ -3,6 +3,8 @@ import serial.tools.list_ports
 import threading
 import json
 import re
+import sys
+import os
 
 from datetime import datetime
 
@@ -16,6 +18,15 @@ import config_gui
 from SystemCommands import CommandsControl
 from ui_design.pyforms.MainWindowForm import Ui_MainWindow
 from ui_control.InfoFormControl import InfoWindow
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath("./assets/icons")
+
+    return os.path.join(base_path, relative_path)
 
 
 class MainWindow(QMainWindow):
@@ -32,25 +43,25 @@ class MainWindow(QMainWindow):
 
         # загружаем иконки приложения
         self.icon_info = QIcon()
-        self.icon_info.addFile(u"assets/icons/info-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_info.addFile(resource_path("info-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_reload = QIcon()
-        self.icon_reload.addFile(u"assets/icons/sync-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_reload.addFile(resource_path("sync-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_save = QIcon()
-        self.icon_save.addFile(u"assets/icons/save-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_save.addFile(resource_path("save-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_add = QIcon()
-        self.icon_add.addFile(u"assets/icons/plus-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_add.addFile(resource_path("plus-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_delete = QIcon()
-        self.icon_delete.addFile(u"assets/icons/trash-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_delete.addFile(resource_path("trash-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_play = QIcon()
-        self.icon_play.addFile(u"assets/icons/play-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_play.addFile(resource_path("play-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         self.icon_pause = QIcon()
-        self.icon_pause.addFile(u"assets/icons/pause-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.icon_pause.addFile(resource_path("pause-solid.svg"), QSize(), QIcon.Normal, QIcon.Off)
 
         # настройка кнопок с иконками
         self.ui.infoBtn.setIcon(self.icon_info)

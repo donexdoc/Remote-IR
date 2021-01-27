@@ -267,3 +267,9 @@ test.py
 
 ## Генерируемые файлы самой программой
 commands.json
+
+## сборка в exe
+dis
+build
+buildExe.bat
+!remote_ir_gui.spec
