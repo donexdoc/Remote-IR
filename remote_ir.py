@@ -13,7 +13,7 @@ hold_count = 0
 def main():
     print("hey!")
 
-    with serial.Serial(config.SERIAL_PORT, config.SERIAL_RATE, timeout=config.SERIAL_TIMEUOT) as ser:
+    with serial.Serial(config.SERIAL_PORT, config.SERIAL_RATE, timeout=config.SERIAL_TIMEOUT) as ser:
         while True:
             line = ser.readline().strip()  # read a '\n' terminated line
             if len(line) > 0:
